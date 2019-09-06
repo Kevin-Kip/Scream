@@ -59,6 +59,4 @@ class MainActivity : AppCompatActivity(), Charge {
         val chargeIntent = Intent(this@MainActivity, BatteryChecker::class.java)
         bindService(chargeIntent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
-
-
 }

@@ -11,6 +11,16 @@ import android.os.IBinder
 import com.revosleap.alerter.MainActivity
 import com.revosleap.alerter.R
 import com.revosleap.alerter.interfaces.Charge
+import android.support.v4.app.NotificationCompat
+import android.app.NotificationManager
+import android.app.NotificationChannel
+import android.annotation.SuppressLint
+import android.os.Build
+import android.content.Context.NOTIFICATION_SERVICE
+import android.support.v4.content.ContextCompat.getSystemService
+import android.app.Notification
+import android.graphics.Color
+
 
 class BatteryChecker : Service() {
     private val binder = ServiceBinder()
@@ -35,6 +45,38 @@ class BatteryChecker : Service() {
             get() = this@BatteryChecker
     }
 
+    private fun showNotification() {
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val NOTIFICATION_CHANNEL_ID = "screaming_goat"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            @SuppressLint("WrongConstant") val notificationChannel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Screaming goat",
+                NotificationManager.IMPORTANCE_MAX
+            )
+            // Configure the notification channel.
+            notificationChannel.description = "Shut down screaming goat"
+            notificationChannel.enableLights(true)
+            notificationChannel.lightColor = Color.RED
+            notificationChannel.vibrationPattern =
+                longArrayOf(0, 200, 400, 600, 800, 1000, 800, 600, 400, 200, 0)
+            notificationChannel.enableVibration(true)
+            notificationManager.createNotificationChannel(notificationChannel)
+        }
+        val notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+        notificationBuilder.setAutoCancel(true)
+            .setDefaults(Notification.DEFAULT_ALL)
+            .setWhen(System.currentTimeMillis())
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setTicker("Screaming Goat")
+            //.setPriority(Notification.PRIORITY_MAX)
+            .setContentTitle("Screaming goat")
+            .setContentText("Shutdown Screaming goat")
+        
+        notificationManager.notify(1, notificationBuilder.build())
+    }
+
     private val chargeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, 0)
@@ -47,6 +89,7 @@ class BatteryChecker : Service() {
                 )
                 val player = MediaPlayer.create(context, R.raw.screaming_goat)
                 player.start()
+                showNotification()
             }
         }
 
